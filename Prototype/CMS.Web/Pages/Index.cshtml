@@ -1,0 +1,29 @@
+@page
+@model CMS.Web.Pages.IndexModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="page-container">
+    <h1>Complaint Management System</h1>
+    <p>Welcome, <strong>@User.Identity?.Name</strong>.</p>
+
+    <div class="home-actions">
+        @if (User.HasClaim("role", "Consumer"))
+        {
+            <a href="/complaints/log" class="btn btn-primary">Log a complaint</a>
+        }
+        @if (User.HasClaim("role", "HelpDeskAgent"))
+        {
+            <a href="/complaints" class="btn btn-primary">View complaints</a>
+        }
+        @if (User.HasClaim("role", "TenantAdmin"))
+        {
+            <a href="/complaints" class="btn btn-primary">Dashboard</a>
+        }
+    </div>
+</div>
+
+<style>
+    .home-actions { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
+</style>

@@ -1,0 +1,84 @@
+{
+  "realm": "o2-dev",
+  "enabled": true,
+  "displayName": "O2 CMS (Dev)",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+
+  "clients": [
+    {
+      "clientId": "cms-web",
+      "name": "CMS Web Application",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "change-me-in-production",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://localhost:5000/*",
+        "https://localhost:5001/*"
+      ],
+      "webOrigins": ["+"],
+      "protocol": "openid-connect",
+      "protocolMappers": [
+        {
+          "name": "tid-claim",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-hardcoded-claim-mapper",
+          "config": {
+            "claim.name": "tid",
+            "claim.value": "o2",
+            "access.token.claim": "true",
+            "id.token.claim": "true"
+          }
+        },
+        {
+          "name": "role-claim",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "role",
+            "claim.name": "role",
+            "access.token.claim": "true",
+            "id.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+
+  "users": [
+    {
+      "username": "consumer-o2",
+      "email": "consumer@o2-example.com",
+      "firstName": "Maya",
+      "lastName": "Patel",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "Password1!", "temporary": false }],
+      "attributes": { "role": ["Consumer"], "tid": ["o2"] }
+    },
+    {
+      "username": "agent-o2",
+      "email": "agent@o2-example.com",
+      "firstName": "Chris",
+      "lastName": "Evans",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "Password1!", "temporary": false }],
+      "attributes": { "role": ["HelpDeskAgent"], "tid": ["o2"] }
+    },
+    {
+      "username": "support-o2",
+      "email": "james.okafor@o2-example.com",
+      "firstName": "James",
+      "lastName": "Okafor",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "Password1!", "temporary": false }],
+      "attributes": { "role": ["SupportPerson"], "tid": ["o2"] }
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+@page "/login"
+@model CMS.Web.Pages.LoginModel
+@{
+    ViewData["Title"] = "Sign In";
+    Layout = "_Layout";
+}
+
+<!--
+    Login page — tenant realm selector (ADR-04, ADR-07)
+    Because the app serves multiple tenants across separate Keycloak realms,
+    the user must choose their organisation before being redirected to Keycloak.
+    The POST handler issues Challenge(<scheme>) for the selected realm.
+    Accessibility: WCAG 2.2 AA — page titled, heading, labelled buttons.
+-->
+
+<div class="page-container" style="max-width:480px;margin:4rem auto;text-align:center;">
+
+    <h1>Sign In</h1>
+    <p style="color:#555;margin-bottom:2rem;">Select your organisation to continue.</p>
+
+    <!--
+        NatWest tenant — challenges against the natwest-dev Keycloak realm.
+        Users: consumer1, agent1, support1, admin1  (password: Password1!)
+    -->
+    <form method="post" style="margin-bottom:1rem;">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="scheme" value="natwest-oidc" />
+        <input type="hidden" name="returnUrl" value="@Request.Query["ReturnUrl"]" />
+        <button type="submit" class="btn btn-primary" style="width:100%;padding:1rem;font-size:1.1rem;">
+            Sign in as NatWest user
+        </button>
+    </form>
+
+    <!--
+        O2 tenant — challenges against the o2-dev Keycloak realm.
+        Users: consumer-o2, agent-o2, support-o2  (password: Password1!)
+    -->
+    <form method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="scheme" value="o2-oidc" />
+        <input type="hidden" name="returnUrl" value="@Request.Query["ReturnUrl"]" />
+        <button type="submit" class="btn btn-primary" style="width:100%;padding:1rem;font-size:1.1rem;background:#e60028;border-color:#c90023;">
+            Sign in as O2 user
+        </button>
+    </form>
+
+</div>

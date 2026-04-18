@@ -1,0 +1,67 @@
+@page "/complaints"
+@model CMS.Web.Pages.Complaints.ComplaintsIndexModel
+@{
+    ViewData["Title"] = "Complaints";
+}
+
+<div class="page-container">
+    <h1>Complaints</h1>
+
+    @if (User.HasClaim("role", "Consumer"))
+    {
+        <div style="margin-bottom:1.5rem;">
+            <a href="/complaints/log" class="btn btn-primary">Log a new complaint</a>
+        </div>
+    }
+
+    @if (!Model.Complaints.Any())
+    {
+        <p role="status">No complaints found for your organisation.</p>
+    }
+    else
+    {
+        <table class="complaints-table" aria-label="Complaints list">
+            <thead>
+                <tr>
+                    <th scope="col">Reference</th>
+                    <th scope="col">Subject</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Logged</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model.Complaints)
+                {
+                    <tr>
+                        <td>@c.ReferenceNumber</td>
+                        <td>@c.Subject</td>
+                        <td>
+                            <span class="status-badge status-@c.Status.ToString().ToLower()">
+                                @c.Status
+                            </span>
+                        </td>
+                        <td>
+                            <time datetime="@c.LoggedAt.ToString("o")">
+                                @c.LoggedAt.ToString("dd MMM yyyy")
+                            </time>
+                        </td>
+                        <td>
+                            @if (User.HasClaim("role", "HelpDeskAgent") && c.Status == CMS.Domain.ValueObjects.ComplaintStatus.Open)
+                            {
+                                <a href="/complaints/@c.Id/assign" class="btn btn-ghost btn-sm">Assign</a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+<style>
+    .complaints-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    .complaints-table th, .complaints-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--color-border); font-size: 0.9375rem; }
+    .complaints-table th { background: #F1F5F9; font-weight: 600; color: var(--color-mid); }
+    .btn-sm { padding: 0.25rem 0.75rem; min-height: 36px; min-width: unset; font-size: 0.875rem; }
+</style>

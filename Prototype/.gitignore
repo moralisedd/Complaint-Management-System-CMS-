@@ -1,0 +1,21 @@
+## .NET
+bin/
+obj/
+*.user
+.vs/
+*.suo
+.idea/
+
+## dotnet publish
+publish/
+
+## User secrets
+secrets.json
+
+## Docker volumes
+docker/postgres-data/
+docker/keycloak-data/
+
+## Coverage
+coverage/
+TestResults/

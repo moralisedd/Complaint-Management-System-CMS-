@@ -1,0 +1,160 @@
+@page "/complaints/{id:guid}/assign"
+@model CMS.Web.Pages.Complaints.AssignModel
+@{
+    ViewData["Title"] = "Assign Support Person";
+}
+
+<!--
+    Screen 2 — Assign Support Person (FR2, UC02)
+    Roles: HelpDeskAgent (CanAssignSupport policy, ADR-05)
+    Accessibility: WCAG 2.2 AA — see UI_Wireframe_Annotations.md Elements 9–12
+-->
+
+<div class="page-container">
+
+    <!-- Element 1 — H1 (WCAG 2.4.2, 2.4.6) -->
+    <h1>Assign Support Person</h1>
+
+    <!--
+        Element 12 — Success confirmation banner
+        (WCAG 4.1.3 Status Messages AA; role="status" exposes to AT without focus movement)
+        Nielsen Heuristic 1 — Visibility of System Status
+    -->
+    @if (TempData["SuccessMessage"] is string successMsg)
+    {
+        <div role="status" aria-live="polite" class="alert alert-success">
+            <span aria-hidden="true">&#10003;</span> @successMsg
+        </div>
+    }
+
+    <!--
+        Element 9 — Complaint summary card
+        (WCAG 1.3.1 Info and Relationships A: dl/dt/dd structure)
+        (WCAG 1.4.3 Contrast Minimum AA: status badge text ≥ 4.5:1)
+        Nielsen Heuristic 1 — Visibility of System Status
+    -->
+    <article aria-label="Complaint summary" class="summary-card">
+        <h2 class="summary-heading">Complaint Details</h2>
+        <dl class="summary-list">
+            <div class="summary-row">
+                <dt>Reference</dt>
+                <dd>@Model.Complaint?.ReferenceNumber</dd>
+            </div>
+            <div class="summary-row">
+                <dt>Subject</dt>
+                <dd>@Model.Complaint?.Subject</dd>
+            </div>
+            <div class="summary-row">
+                <dt>Status</dt>
+                <dd>
+                    <span class="status-badge status-@Model.Complaint?.Status.ToString().ToLower()">
+                        @Model.Complaint?.Status
+                    </span>
+                </dd>
+            </div>
+            <div class="summary-row">
+                <dt>Logged by</dt>
+                <dd>@Model.Complaint?.LoggedByUserId</dd>
+            </div>
+            <div class="summary-row">
+                <dt>Logged at</dt>
+                <dd>
+                    <time datetime="@Model.Complaint?.LoggedAt.ToString("o")">
+                        @Model.Complaint?.LoggedAt.ToString("dd MMM yyyy HH:mm")
+                    </time>
+                </dd>
+            </div>
+        </dl>
+    </article>
+
+    <form method="post" id="assign-form">
+        @Html.AntiForgeryToken()
+
+        @if (!ModelState.IsValid && ViewData["AttemptedSubmit"] is true)
+        {
+            <div role="alert" aria-label="Form errors" class="validation-summary">
+                <div asp-validation-summary="All"></div>
+            </div>
+        }
+
+        <!--
+            Element 10 — Support person dropdown
+            (WCAG 1.3.1 A: label association; WCAG 2.1.1 A: keyboard operable;
+             Norman Constraints: only valid tenant-scoped support persons shown;
+             Nielsen Heuristic 5 — Error Prevention)
+        -->
+        <div class="field-group">
+            <label asp-for="Input.SupportPersonId">Assign to</label>
+            <span id="assign-hint" class="field-hint">
+                Only active support staff in your organisation are shown.
+            </span>
+            @if (Model.SupportPersons.Count == 0)
+            {
+                <p class="field-hint" role="status">
+                    No active Support Persons are available in your organisation.
+                </p>
+            }
+            else
+            {
+                <select asp-for="Input.SupportPersonId"
+                        asp-items="Model.SupportPersonSelectList"
+                        class="form-select"
+                        required
+                        aria-describedby="assign-hint assign-error">
+                    <option value="">-- Select a support person --</option>
+                </select>
+            }
+            <span asp-validation-for="Input.SupportPersonId"
+                  id="assign-error"
+                  role="alert"
+                  class="field-error"></span>
+        </div>
+
+        <div class="form-actions">
+            <button type="button"
+                    class="btn btn-primary"
+                    onclick="document.getElementById('confirm-dialog').showModal()">
+                Assign
+            </button>
+            <a href="/complaints" class="btn btn-ghost">Cancel</a>
+        </div>
+
+        <!--
+            Element 11 — Confirmation dialog
+            (WCAG 2.1.1 Keyboard A: native <dialog> traps focus;
+             WCAG 4.1.2 Name, Role, Value A: aria-modal + aria-labelledby;
+             Nielsen Heuristic 5 — Error Prevention: confirms consequential action;
+             Nielsen Heuristic 3 — User Control and Freedom: Cancel accessible)
+            Progressive enhancement: without JS the form posts directly with _confirm=true.
+        -->
+        <dialog id="confirm-dialog"
+                aria-modal="true"
+                aria-labelledby="dialog-title"
+                class="confirm-dialog">
+            <h2 id="dialog-title">Confirm Assignment</h2>
+            <p>
+                Are you sure you want to assign this complaint to the selected support person?
+                The complaint status will change to <strong>In Progress</strong>.
+            </p>
+            <div class="dialog-actions">
+                <!--
+                    Cancel receives initial focus (WCAG 2.1.1 — keyboard users can easily cancel)
+                    UC02 Alt Flow 7a: Cancel closes dialog; no state change; focus returns to Assign button
+                -->
+                <button type="button"
+                        class="btn btn-ghost"
+                        autofocus
+                        onclick="document.getElementById('confirm-dialog').close()">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="btn btn-primary"
+                        name="_confirm"
+                        value="true">
+                    Confirm
+                </button>
+            </div>
+        </dialog>
+
+    </form>
+</div>

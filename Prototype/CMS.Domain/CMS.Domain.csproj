@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>CMS.Domain</AssemblyName>
+    <RootNamespace>CMS.Domain</RootNamespace>
+  </PropertyGroup>
+</Project>

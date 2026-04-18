@@ -1,0 +1,88 @@
+version: "3.9"
+
+# =============================================================================
+# CMS PoC — Docker Compose
+# Starts: PostgreSQL 16 + Redis 7 + Keycloak 24
+# Usage:  docker compose up -d
+#         Keycloak admin: http://localhost:8080 (admin / admin)
+#         natwest realm:  http://localhost:8080/realms/natwest-dev
+#         o2 realm:       http://localhost:8080/realms/o2-dev
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL 16 — schema-per-tenant data store (ADR-02A)
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: cms-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       cms_db
+      POSTGRES_USER:     cms_app
+      POSTGRES_PASSWORD: cms_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # Run InitialSchema.sql for each tenant on first start:
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cms_app -d cms_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Redis 7 — distributed cache (session, token cache)
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: cms-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Keycloak 24 — OIDC identity provider (ADR-04)
+  # Realm configs are imported on startup from docker/keycloak/
+  # ---------------------------------------------------------------------------
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.2
+    container_name: cms-keycloak
+    restart: unless-stopped
+    command:
+      - start-dev
+      - --import-realm
+    environment:
+      KEYCLOAK_ADMIN:          admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB:                   postgres
+      KC_DB_URL:               jdbc:postgresql://postgres:5432/keycloak_db
+      KC_DB_USERNAME:          cms_app
+      KC_DB_PASSWORD:          cms_password
+      KC_HTTP_PORT:            8080
+      KC_HOSTNAME_STRICT:      "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./docker/keycloak:/opt/keycloak/data/import
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/realms/master || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 15
+      start_period: 90s
+
+volumes:
+  postgres-data:

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — CMS</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    <!--
+        Element 8 — Skip navigation link (WCAG 2.4.1 Bypass Blocks A)
+        Visually hidden until focused; first focusable element on every page.
+    -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <header role="banner">
+        <nav class="nav-bar" aria-label="Main navigation">
+            <a href="/" class="nav-brand" style="color:inherit;text-decoration:none;">CMS</a>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="nav-links" aria-label="Site navigation">
+                    @if (User.HasClaim("role", "Consumer"))
+                    {
+                        <a href="/complaints/log" class="nav-link">Log Complaint</a>
+                    }
+                    @if (User.HasClaim("role", "HelpDeskAgent") || User.HasClaim("role", "TenantAdmin"))
+                    {
+                        <a href="/complaints" class="nav-link">All Complaints</a>
+                    }
+                </div>
+                <span class="nav-user" aria-label="Signed in as @User.Identity.Name">
+                    @User.Identity.Name
+                </span>
+                <a href="/logout" class="btn btn-ghost btn-sm" style="color:#fff;border-color:rgba(255,255,255,0.4);">Sign out</a>
+            }
+        </nav>
+    </header>
+
+    <main id="main-content" tabindex="-1">
+        @RenderBody()
+    </main>
+
+    <footer role="contentinfo">
+        <p class="footer-text">Complaint Management System &mdash; PoC prototype</p>
+    </footer>
+</body>
+</html>

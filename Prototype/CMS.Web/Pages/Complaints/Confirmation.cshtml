@@ -1,0 +1,24 @@
+@page "/complaints/confirmation"
+@model CMS.Web.Pages.Complaints.ConfirmationModel
+@{
+    ViewData["Title"] = "Complaint Submitted";
+}
+
+<div class="page-container">
+    <h1>Complaint Submitted</h1>
+
+    <!-- UC01 Step 10 — Success banner with reference number -->
+    <div role="status" aria-live="polite" class="alert alert-success">
+        <span aria-hidden="true">&#10003;</span>
+        Your complaint has been logged. Reference number: <strong>@Model.ReferenceNumber</strong>
+    </div>
+
+    <p>
+        We have received your complaint and will acknowledge it in line with our complaints policy.
+        Please keep your reference number for future correspondence.
+    </p>
+
+    <div class="form-actions">
+        <a href="/complaints/log" class="btn btn-ghost">Log another complaint</a>
+    </div>
+</div>

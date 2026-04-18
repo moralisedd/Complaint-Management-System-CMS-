@@ -1,0 +1,15 @@
+@page "/access-denied"
+@model CMS.Web.Pages.AccessDeniedModel
+@{
+    ViewData["Title"] = "Access Denied";
+}
+
+<div class="page-container">
+    <h1>Access Denied</h1>
+    <p>You don't have permission to view this page.</p>
+    <p>This may be because your account role doesn't allow access to this area.
+       If you think this is a mistake, contact your administrator.</p>
+    <div class="form-actions">
+        <a href="/" class="btn btn-ghost">Go to home</a>
+    </div>
+</div>

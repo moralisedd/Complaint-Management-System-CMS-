@@ -1,0 +1,122 @@
+@page "/complaints/log"
+@model CMS.Web.Pages.Complaints.LogModel
+@{
+    ViewData["Title"] = "Log a Complaint";
+}
+
+<!--
+    Screen 1 — Log a Complaint (FR1, UC01)
+    Roles: Consumer (CanLogComplaint policy, ADR-05)
+    Accessibility: WCAG 2.2 AA — see UI_Wireframe_Annotations.md Elements 1–8
+-->
+
+<div class="page-container">
+
+    <!--
+        Element 1 — Page title and H1 (WCAG 2.4.2 Page Titled A, WCAG 2.4.6 Headings and Labels AA)
+        <title> is set via ViewData["Title"] in _Layout.cshtml: "Log a Complaint — CMS"
+        Nielsen H1 — Visibility of System Status
+    -->
+    <h1>Log a Complaint</h1>
+
+    @if (!ModelState.IsValid && ViewData["AttemptedSubmit"] is true)
+    {
+        <!--
+            Element 6 — Validation summary (WCAG 1.3.3 Sensory Characteristics A, WCAG 1.4.1 Use of Color A)
+            role="alert" announces the error list to screen readers immediately on page render.
+            Nielsen Heuristic 5 — Error Prevention: full picture before scrolling down.
+        -->
+        <div role="alert" aria-label="Form errors" class="validation-summary">
+            <p><strong>Please correct the following errors before submitting:</strong></p>
+            <div asp-validation-summary="All"></div>
+        </div>
+    }
+
+    <form method="post" novalidate>
+        @Html.AntiForgeryToken()
+
+        <!--
+            Element 2 — Subject field
+            (WCAG 1.3.1 Info and Relationships A, WCAG 2.4.6 Headings and Labels AA,
+             WCAG 3.3.2 Labels or Instructions A)
+        -->
+        <div class="field-group">
+            <label asp-for="Input.Subject">Subject</label>
+            <span id="Subject-hint" class="field-hint">
+                Briefly describe your complaint (max 120 characters)
+            </span>
+            <input asp-for="Input.Subject"
+                   class="form-input"
+                   maxlength="120"
+                   required
+                   aria-describedby="Subject-hint Subject-error" />
+            <!--
+                Element 5 — Inline error (WCAG 3.3.1 Error Identification A, WCAG 3.3.3 Error Suggestion AA)
+                role="alert" announces immediately; Nielsen Heuristic 9
+            -->
+            <span asp-validation-for="Input.Subject"
+                  id="Subject-error"
+                  role="alert"
+                  class="field-error"></span>
+        </div>
+
+        <!--
+            Element 3 — Description textarea
+            (WCAG 1.3.1 A, WCAG 3.3.2 A; Nielsen Heuristic 4 Consistency and Standards)
+        -->
+        <div class="field-group">
+            <label asp-for="Input.Description">Description</label>
+            <span id="Description-hint" class="field-hint">
+                Describe your complaint in detail (max 2000 characters)
+            </span>
+            <textarea asp-for="Input.Description"
+                      class="form-input"
+                      rows="6"
+                      maxlength="2000"
+                      required
+                      aria-describedby="Description-hint Description-error"></textarea>
+            <span asp-validation-for="Input.Description"
+                  id="Description-error"
+                  role="alert"
+                  class="field-error"></span>
+        </div>
+
+        <!--
+            Element 4 — Channel radio group
+            (WCAG 1.3.1 A: fieldset+legend; WCAG 2.5.8 Target Size AA; Norman Constraints)
+        -->
+        <fieldset class="field-group">
+            <legend>Contact channel</legend>
+            <span id="Channel-hint" class="field-hint">
+                How did you originally contact us?
+            </span>
+            @foreach (var channel in Enum.GetValues<CMS.Domain.ValueObjects.ContactChannel>())
+            {
+                <div class="radio-option">
+                    <input asp-for="Input.Channel"
+                           type="radio"
+                           id="channel-@channel"
+                           value="@channel.ToString()"
+                           aria-describedby="Channel-hint" />
+                    <label for="channel-@channel">@channel</label>
+                </div>
+            }
+            <span asp-validation-for="Input.Channel"
+                  id="Channel-error"
+                  role="alert"
+                  class="field-error"></span>
+        </fieldset>
+
+        <!--
+            Element 7 — Submit button
+            (WCAG 2.4.6 AA, WCAG 2.5.8 AA, WCAG 2.4.7 Focus Visible AA,
+             WCAG 3.3.8 Accessible Authentication AA, Norman Affordance)
+        -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                Submit complaint
+            </button>
+        </div>
+
+    </form>
+</div>

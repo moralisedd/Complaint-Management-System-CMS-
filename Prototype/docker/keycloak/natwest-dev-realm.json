@@ -1,0 +1,96 @@
+{
+  "realm": "natwest-dev",
+  "enabled": true,
+  "displayName": "NatWest CMS (Dev)",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+
+  "clients": [
+    {
+      "clientId": "cms-web",
+      "name": "CMS Web Application",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "change-me-in-production",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://localhost:5000/*",
+        "https://localhost:5001/*"
+      ],
+      "webOrigins": ["+"],
+      "protocol": "openid-connect",
+      "attributes": {
+        "post.logout.redirect.uris": "+"
+      },
+      "protocolMappers": [
+        {
+          "name": "tid-claim",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-hardcoded-claim-mapper",
+          "config": {
+            "claim.name": "tid",
+            "claim.value": "natwest",
+            "access.token.claim": "true",
+            "id.token.claim": "true"
+          }
+        },
+        {
+          "name": "role-claim",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "role",
+            "claim.name": "role",
+            "access.token.claim": "true",
+            "id.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+
+  "users": [
+    {
+      "username": "consumer1",
+      "email": "consumer1@natwest-example.com",
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "Password1!", "temporary": false }],
+      "attributes": { "role": ["Consumer"], "tid": ["natwest"] }
+    },
+    {
+      "username": "agent1",
+      "email": "agent1@natwest-example.com",
+      "firstName": "Alex",
+      "lastName": "Johnson",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "Password1!", "temporary": false }],
+      "attributes": { "role": ["HelpDeskAgent"], "tid": ["natwest"] }
+    },
+    {
+      "username": "support1",
+      "email": "sarah.lee@natwest-example.com",
+      "firstName": "Sarah",
+      "lastName": "Lee",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "Password1!", "temporary": false }],
+      "attributes": { "role": ["SupportPerson"], "tid": ["natwest"] }
+    },
+    {
+      "username": "admin1",
+      "email": "admin1@natwest-example.com",
+      "firstName": "Tenant",
+      "lastName": "Admin",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "Password1!", "temporary": false }],
+      "attributes": { "role": ["TenantAdmin"], "tid": ["natwest"] }
+    }
+  ]
+}
