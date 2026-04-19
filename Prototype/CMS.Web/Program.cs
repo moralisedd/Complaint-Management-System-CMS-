@@ -7,10 +7,12 @@ using CMS.Infrastructure.Middleware;
 using CMS.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -144,6 +146,41 @@ builder.Services.AddAuthentication(options =>
     options.AccessDeniedPath = "/access-denied";
     options.SlidingExpiration = true;
     options.ExpireTimeSpan   = TimeSpan.FromHours(8);
+
+    // If the request carries a Bearer token, hand off to the JWT Bearer scheme.
+    // This lets the same auth pipeline serve both the Razor Pages UI (cookies)
+    // and the REST API (Bearer tokens) without changing the controllers.
+    options.ForwardDefaultSelector = ctx =>
+        ctx.Request.Headers.ContainsKey("Authorization") &&
+        ctx.Request.Headers["Authorization"].ToString().StartsWith("Bearer ")
+            ? JwtBearerDefaults.AuthenticationScheme
+            : null;
+
+    // For /api/* paths, return 401/403 directly instead of redirecting to /login.
+    // Redirecting to an HTML login page is the wrong response for an API client.
+    options.Events = new CookieAuthenticationEvents
+    {
+        OnRedirectToLogin = ctx =>
+        {
+            if (ctx.Request.Path.StartsWithSegments("/api"))
+            {
+                ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return Task.CompletedTask;
+            }
+            ctx.Response.Redirect(ctx.RedirectUri);
+            return Task.CompletedTask;
+        },
+        OnRedirectToAccessDenied = ctx =>
+        {
+            if (ctx.Request.Path.StartsWithSegments("/api"))
+            {
+                ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return Task.CompletedTask;
+            }
+            ctx.Response.Redirect(ctx.RedirectUri);
+            return Task.CompletedTask;
+        }
+    };
 })
 .AddOpenIdConnect("natwest-oidc", options =>
 {
@@ -159,6 +196,23 @@ builder.Services.AddAuthentication(options =>
     ConfigureOidc(options, kc["O2Authority"] ?? "http://localhost:8080/realms/o2-dev");
     options.CallbackPath        = "/signin-o2";
     options.SignedOutCallbackPath = "/signout-callback-o2";
+})
+// JWT Bearer — validates Keycloak access tokens sent by REST API clients (e.g. Newman, Swagger).
+// ForwardDefaultSelector on the Cookie scheme routes Bearer requests here automatically.
+// We accept tokens from either realm; since both are on the same Keycloak instance we use
+// the NatWest realm authority. ValidateAudience is off because Keycloak doesn't add an 'aud'
+// claim for the client_credentials / ROPC flows used in tests.
+.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+{
+    options.Authority            = kc["NatWestAuthority"] ?? "http://localhost:8080/realms/natwest-dev";
+    options.RequireHttpsMetadata = false;
+    options.MapInboundClaims     = false;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateAudience = false,
+        NameClaimType    = "preferred_username",
+        RoleClaimType    = "role"
+    };
 });
 
 // =============================================================================

@@ -5,11 +5,9 @@ using Xunit;
 
 namespace CMS.Domain.Tests;
 
-/// <summary>
-/// Unit tests for the Complaint aggregate root.
-/// Tests the domain invariants enforced by Complaint.Create() and Complaint.AssignTo().
-/// All tests are pure in-memory — no database, no DI container required.
-/// </summary>
+// Tests for the Complaint domain entity.
+// I'm testing the invariants in Complaint.Create() and Complaint.AssignTo() in
+// isolation — no database or DI container needed, just plain C# objects.
 public sealed class ComplaintTests
 {
     // -----------------------------------------------------------------------

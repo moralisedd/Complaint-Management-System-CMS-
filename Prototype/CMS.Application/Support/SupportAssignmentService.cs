@@ -4,9 +4,9 @@ using CMS.Domain.Interfaces;
 
 namespace CMS.Application.Support;
 
-// Handles the Assign Support Person use case.
-// The assignment logic lives here rather than in the page model so it can be
-// tested independently and reused if I add an API controller later.
+// Handles the Assign Support Person use case (UC02).
+// I put the assignment logic here rather than in the page model or controller
+// so both the Razor Pages UI and the REST API can share it without duplication.
 public sealed class SupportAssignmentService : ISupportAssignmentService
 {
     private readonly IComplaintRepository _complaints;

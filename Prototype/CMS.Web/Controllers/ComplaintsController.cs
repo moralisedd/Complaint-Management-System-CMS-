@@ -124,19 +124,23 @@ public sealed class ComplaintsController : ControllerBase
 // ---------------------------------------------------------------------------
 
 /// <summary>Request body for POST /api/v1/complaints (FR1).</summary>
-public sealed record LogComplaintRequest(
-    [property: System.ComponentModel.DataAnnotations.Required]
-    [property: System.ComponentModel.DataAnnotations.StringLength(120, MinimumLength = 1)]
-    string Subject,
+// Property-style record (not positional) so ASP.NET Core model binding can construct
+// the instance via the parameterless constructor before populating properties.
+public sealed record LogComplaintRequest
+{
+    [System.ComponentModel.DataAnnotations.Required]
+    [System.ComponentModel.DataAnnotations.StringLength(120, MinimumLength = 1)]
+    public string Subject { get; init; } = default!;
 
-    [property: System.ComponentModel.DataAnnotations.Required]
-    [property: System.ComponentModel.DataAnnotations.StringLength(2000, MinimumLength = 1)]
-    string Description,
+    [System.ComponentModel.DataAnnotations.Required]
+    [System.ComponentModel.DataAnnotations.StringLength(2000, MinimumLength = 1)]
+    public string Description { get; init; } = default!;
 
-    ContactChannel Channel
-);
+    public ContactChannel Channel { get; init; }
+}
 
 /// <summary>Request body for PATCH /api/v1/complaints/{id}/assign (FR2).</summary>
-public sealed record AssignSupportRequest(
-    Guid SupportPersonId
-);
+public sealed record AssignSupportRequest
+{
+    public Guid SupportPersonId { get; init; }
+}

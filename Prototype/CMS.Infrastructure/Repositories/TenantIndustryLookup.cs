@@ -3,10 +3,9 @@ using Microsoft.Extensions.Configuration;
 
 namespace CMS.Infrastructure.Repositories;
 
-/// <summary>
-/// Reads the industry key for a given tenant from appsettings.json (Tenants section).
-/// In production this would query Redis or a tenant-config service.
-/// </summary>
+// Reads the industry key (Banking / Telecom) for a tenant from appsettings.json.
+// I kept this in config for the PoC — in production it would hit a tenant-config
+// service or a Redis cache rather than a local file.
 public sealed class TenantIndustryLookup : ITenantIndustryLookup
 {
     private readonly IReadOnlyDictionary<string, string> _industryMap;

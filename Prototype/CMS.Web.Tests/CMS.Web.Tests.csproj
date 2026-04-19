@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>CMS.Web.Tests</AssemblyName>
+    <RootNamespace>CMS.Web.Tests</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!-- Playwright installs its own browsers on first run -->
+    <PlaywrightBrowsers>chromium</PlaywrightBrowsers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- xUnit test runner -->
+    <PackageReference Include="Microsoft.NET.Test.Sdk"         Version="17.9.0" />
+    <PackageReference Include="xunit"                          Version="2.7.0" />
+    <PackageReference Include="xunit.runner.visualstudio"      Version="2.5.7">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions"               Version="6.12.0" />
+
+    <!-- Playwright for browser automation -->
+    <PackageReference Include="Microsoft.Playwright"           Version="1.43.0" />
+    <PackageReference Include="Microsoft.Playwright.NUnit"     Version="1.43.0" />
+
+    <!-- Deque axe-core WCAG 2.x accessibility scanner -->
+    <PackageReference Include="Deque.AxeCore.Playwright"       Version="4.9.0.0" />
+
+    <!-- Coverage -->
+    <PackageReference Include="coverlet.collector"             Version="6.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!--
+    After building, install the Playwright browser binaries automatically.
+    Run once manually if this target doesn't fire:  pwsh bin/Debug/net8.0/playwright.ps1 install chromium
+  -->
+  <Target Name="InstallPlaywrightBrowsers" AfterTargets="Build">
+    <Exec Command="pwsh &quot;$(OutputPath)playwright.ps1&quot; install chromium" ContinueOnError="true" />
+  </Target>
+</Project>

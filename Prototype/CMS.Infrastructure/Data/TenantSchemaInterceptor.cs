@@ -6,15 +6,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CMS.Infrastructure.Data;
 
-// Every time EF Core opens a database connection, I run SET search_path so
-// PostgreSQL looks in the right tenant schema first (e.g. tenant_natwest).
-// This is the first line of tenant isolation — the global query filter in
-// CmsDbContext is the second.
+// Runs SET search_path on every new database connection so PostgreSQL reads
+// from the right tenant schema (e.g. tenant_natwest). This is the first line
+// of tenant isolation — the global query filter in CmsDbContext is the second.
 //
-// I resolve ITenantContext from the current HTTP request's DI scope via
-// IHttpContextAccessor. This is the same instance that TenantResolverMiddleware
-// already populated, so TenantId is guaranteed to be set. Creating a new DI
-// scope would give a fresh blank context and search_path would never apply.
+// I read ITenantContext via IHttpContextAccessor so I get the same scoped instance
+// that TenantResolverMiddleware already populated. If I created a new DI scope
+// here instead, I'd get a blank TenantId and the search_path would never be set.
 public sealed class TenantSchemaInterceptor : DbConnectionInterceptor
 {
     private readonly IHttpContextAccessor _httpContextAccessor;

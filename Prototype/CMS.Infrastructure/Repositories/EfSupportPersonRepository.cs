@@ -5,11 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CMS.Infrastructure.Repositories;
 
-/// <summary>
-/// EF Core implementation of ISupportPersonRepository.
-/// Tenant isolation is enforced by both the global query filter and search_path interceptor.
-/// The resulting query returns only SupportPersons from the current tenant's schema (UC02 Step 3).
-/// </summary>
+// EF Core implementation of ISupportPersonRepository.
+// I only return active support persons ordered by name — that's all the assignment
+// dropdown needs. Tenant isolation is handled by the search_path interceptor and
+// the global query filter in CmsDbContext, so I never need to filter by tenant here manually.
 public sealed class EfSupportPersonRepository : ISupportPersonRepository
 {
     private readonly CmsDbContext _db;

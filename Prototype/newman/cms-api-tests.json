@@ -1,0 +1,226 @@
+{
+  "info": {
+    "_postman_id": "cms-poc-api-contract-tests",
+    "name": "CMS API — Contract Tests",
+    "description": "Newman API contract tests for the Complaint Management System PoC.\n\nCovers FR1 (POST /api/v1/complaints) and FR2 (PATCH …/assign),\nplus unauthenticated (401) and RBAC rejection (403) cases.\n\nSee newman/README.md for instructions on obtaining Keycloak tokens.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl",       "value": "https://localhost:5001",  "type": "string" },
+    { "key": "consumerToken", "value": "REPLACE_WITH_CONSUMER_TOKEN", "type": "string",
+      "description": "Bearer token for consumer1 (natwest-dev realm). See README.md." },
+    { "key": "agentToken",    "value": "REPLACE_WITH_AGENT_TOKEN",    "type": "string",
+      "description": "Bearer token for agent1 (natwest-dev realm). See README.md." },
+    { "key": "complaintId",   "value": "",                            "type": "string",
+      "description": "Populated automatically by Test 1." },
+    { "key": "supportPersonId", "value": "REPLACE_WITH_SUPPORT_PERSON_UUID", "type": "string",
+      "description": "UUID of an active support person in tenant_natwest. Query the DB or read from the Assign page." }
+  ],
+  "item": [
+    {
+      "name": "01 — FR1: Log Complaint (Consumer) → 201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Assert HTTP 201 Created",
+              "pm.test('Status is 201 Created', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "// Assert response body has complaintId and referenceNumber",
+              "pm.test('Response contains complaintId (UUID)', function () {",
+              "    const body = pm.response.json();",
+              "    pm.expect(body.complaintId).to.match(",
+              "        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i",
+              "    );",
+              "});",
+              "",
+              "pm.test('Response contains referenceNumber (CMS-YYYY-XXXXXXXX)', function () {",
+              "    const body = pm.response.json();",
+              "    pm.expect(body.referenceNumber).to.match(/^CMS-\\d{4}-[A-F0-9]{8}$/);",
+              "});",
+              "",
+              "// Store the complaintId for use in Test 02",
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set('complaintId', body.complaintId);",
+              "console.log('complaintId stored:', body.complaintId);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type",  "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{consumerToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"subject\": \"Card declined at point of sale\",\n  \"description\": \"I tried to pay contactless at Tesco and the terminal declined my card despite having sufficient funds. I confirmed on the app that funds were available. This happened at 14:32 on a weekday.\",\n  \"channel\": 1\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/v1/complaints", "host": ["{{baseUrl}}"], "path": ["api", "v1", "complaints"] }
+      }
+    },
+    {
+      "name": "02 — FR2: Assign Support Person (Agent) → 204",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Assert HTTP 204 No Content (assignment accepted, no body returned)",
+              "pm.test('Status is 204 No Content', function () {",
+              "    pm.response.to.have.status(204);",
+              "});",
+              "",
+              "pm.test('Response body is empty', function () {",
+              "    pm.expect(pm.response.text()).to.equal('');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type",  "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{agentToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"supportPersonId\": \"{{supportPersonId}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/complaints/{{complaintId}}/assign",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "complaints", "{{complaintId}}", "assign"]
+        }
+      }
+    },
+    {
+      "name": "03 — Unauthenticated POST → 401",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// A request with no Authorization header must be rejected with 401.",
+              "pm.test('Status is 401 Unauthorized', function () {",
+              "    pm.response.to.have.status(401);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"subject\": \"Test\",\n  \"description\": \"Test description that is long enough.\",\n  \"channel\": 1\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/v1/complaints", "host": ["{{baseUrl}}"], "path": ["api", "v1", "complaints"] }
+      }
+    },
+    {
+      "name": "04 — RBAC Rejection: Agent tries to log complaint → 403",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// The HelpDeskAgent role has CanAssignSupport but NOT CanLogComplaint.",
+              "// Attempting to call POST /complaints with an agent token must return 403 Forbidden.",
+              "pm.test('Status is 403 Forbidden', function () {",
+              "    pm.response.to.have.status(403);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type",  "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{agentToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"subject\": \"Agent trying to log complaint\",\n  \"description\": \"This should be rejected because agents cannot log complaints — only consumers can.\",\n  \"channel\": 1\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/v1/complaints", "host": ["{{baseUrl}}"], "path": ["api", "v1", "complaints"] }
+      }
+    },
+    {
+      "name": "05 — FR1 Validation: Subject over 120 chars → 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Model validation on the controller should reject subjects longer than 120 characters.",
+              "pm.test('Status is 400 Bad Request', function () {",
+              "    pm.response.to.have.status(400);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type",  "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{consumerToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"subject\": \"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\",\n  \"description\": \"Valid description that is long enough to pass validation.\",\n  \"channel\": 1\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/v1/complaints", "host": ["{{baseUrl}}"], "path": ["api", "v1", "complaints"] }
+      }
+    },
+    {
+      "name": "06 — FR2 Consumer tries to assign support → 403",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Consumers have CanLogComplaint but NOT CanAssignSupport.",
+              "// Calling PATCH …/assign with a consumer token must return 403.",
+              "pm.test('Status is 403 Forbidden', function () {",
+              "    pm.response.to.have.status(403);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type",  "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{consumerToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"supportPersonId\": \"{{supportPersonId}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/complaints/{{complaintId}}/assign",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "complaints", "{{complaintId}}", "assign"]
+        }
+      }
+    }
+  ]
+}

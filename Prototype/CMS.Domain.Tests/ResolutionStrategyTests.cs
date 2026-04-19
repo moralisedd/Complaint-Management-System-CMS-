@@ -6,10 +6,9 @@ using Xunit;
 
 namespace CMS.Domain.Tests;
 
-/// <summary>
-/// Unit tests for the Strategy design pattern (ADR-03).
-/// Tests BankResolutionStrategy, TelecomResolutionStrategy, and ResolutionStrategyFactory.
-/// </summary>
+// Tests for the Strategy pattern (ADR-03).
+// I'm checking that each strategy returns the correct acknowledgement text,
+// deadline, and key — and that the factory picks the right one at runtime.
 public sealed class ResolutionStrategyTests
 {
     // -----------------------------------------------------------------------
