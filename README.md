@@ -1,5 +1,4 @@
-# Complaint Management System — PoC
-
+# Complaint Management System
 A multi-tenant complaint management prototype built with ASP.NET Core 8, PostgreSQL, and Keycloak.
 
 ---
