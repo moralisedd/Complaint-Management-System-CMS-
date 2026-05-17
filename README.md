@@ -1,6 +1,8 @@
 # Complaint Management System
 A multi-tenant complaint management prototype built with ASP.NET Core 8, PostgreSQL, and Keycloak.
 
+<img width="1906" height="1014" alt="image" src="https://github.com/user-attachments/assets/123b5f86-893b-4bd4-b887-1f3b5a4e2212" />
+
 ---
 
 ## Prerequisites
