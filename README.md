@@ -2,6 +2,8 @@
 A multi-tenant complaint management prototype built with ASP.NET Core 8, PostgreSQL, and Keycloak.
 
 <img width="1906" height="1014" alt="image" src="https://github.com/user-attachments/assets/123b5f86-893b-4bd4-b887-1f3b5a4e2212" />
+<img width="1917" height="1075" alt="image" src="https://github.com/user-attachments/assets/2dda978e-ef3c-4157-804e-84ee448244e1" />
+<img width="1911" height="1042" alt="image" src="https://github.com/user-attachments/assets/0d5eedd9-f154-4cc4-9d2e-b23288ea55ed" />
 
 ---
 
